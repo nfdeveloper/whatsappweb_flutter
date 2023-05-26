@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:watsappweb/utils/paleta_cores.dart';
 
@@ -14,6 +15,59 @@ class _LoginState extends State<Login> {
   TextEditingController _controllerEmail = TextEditingController(text: "nfdeveloper04@gmail.com");
   TextEditingController _controllerSenha = TextEditingController(text: "1234567");
   bool _cadastroUsuario = false;
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  _validarCampos() async{
+
+    String nome = _controllerNome.text;
+    String email = _controllerEmail.text;
+    String senha = _controllerSenha.text;
+
+    if( email.isNotEmpty && email.contains("@") ){
+      if( senha.isNotEmpty && senha.length > 6 ){
+
+        if( _cadastroUsuario ){
+
+          //Cadastro
+          if( nome.isNotEmpty && nome.length > 3 ){
+
+            await _auth.createUserWithEmailAndPassword(
+                email: email,
+                password: senha
+            ).then((auth) {
+
+              // => Upload da Imagem
+              String? idUsuario = auth.user?.uid;
+              print("Usuário cadastrado: $idUsuario");
+
+            });
+
+          }else{
+            print("Nome inválido, digite ao menos 3 caracteres");
+          }
+
+        }else{
+
+          // Login
+          await _auth.signInWithEmailAndPassword(
+              email: email,
+              password: senha
+          ).then((auth){
+
+            String? email = auth.user?.email;
+            print("Usuário cadastrado: $email");
+
+          });
+        }
+
+      }else{
+        print("Senha inválida");
+      }
+
+    }else{
+      print("Email inválido");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +182,9 @@ class _LoginState extends State<Login> {
                           Container(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: (){},
+                              onPressed: (){
+                                _validarCampos();
+                              },
                               style: ElevatedButton.styleFrom(
                                 primary: PaletaCores.corPrimaria
                               ),
