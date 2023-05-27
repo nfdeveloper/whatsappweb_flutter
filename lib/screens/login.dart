@@ -1,4 +1,9 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/_internal/file_picker_web.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:watsappweb/utils/paleta_cores.dart';
 
@@ -16,6 +21,38 @@ class _LoginState extends State<Login> {
   TextEditingController _controllerSenha = TextEditingController(text: "1234567");
   bool _cadastroUsuario = false;
   FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseStorage _storage = FirebaseStorage.instance;
+  Uint8List? _arquivoImagemSelecionado;
+
+  _selecionarImagem() async {
+
+    // Selecionar arquivo
+    FilePickerResult? resultado = await FilePicker.platform.pickFiles(
+      type: FileType.image
+    );
+
+    // Recuperar o arquivo
+    setState(() {
+      _arquivoImagemSelecionado = resultado?.files.single.bytes;
+    });
+
+  }
+
+  _uploadImagem(String idUsuario){
+
+    Uint8List? arquivoSelecionado = _arquivoImagemSelecionado;
+    if(arquivoSelecionado != null){
+      Reference imagemPerfilRef = _storage.ref("imagens/perfil/$idUsuario.jpg");
+      UploadTask uploadTask = imagemPerfilRef.putData(arquivoSelecionado);
+
+      uploadTask.whenComplete(() async{
+        String linkImagem = await uploadTask.snapshot.ref.getDownloadURL();
+        print("Link da imagem: $linkImagem");
+      });
+
+    }
+
+  }
 
   _validarCampos() async{
 
@@ -28,22 +65,29 @@ class _LoginState extends State<Login> {
 
         if( _cadastroUsuario ){
 
-          //Cadastro
-          if( nome.isNotEmpty && nome.length > 3 ){
+          if(_arquivoImagemSelecionado != null){
 
-            await _auth.createUserWithEmailAndPassword(
-                email: email,
-                password: senha
-            ).then((auth) {
+            //Cadastro
+            if( nome.isNotEmpty && nome.length > 3 ){
 
-              // => Upload da Imagem
-              String? idUsuario = auth.user?.uid;
-              print("Usuário cadastrado: $idUsuario");
+              await _auth.createUserWithEmailAndPassword(
+                  email: email,
+                  password: senha
+              ).then((auth) {
 
-            });
+                // => Upload da Imagem
+                String? idUsuario = auth.user?.uid;
+                if(idUsuario != null){
+                  _uploadImagem(idUsuario);
+                }
+              });
+
+            }else{
+              print("Nome inválido, digite ao menos 3 caracteres");
+            }
 
           }else{
-            print("Nome inválido, digite ao menos 3 caracteres");
+            print("Selecione uma imagem");
           }
 
         }else{
@@ -112,12 +156,19 @@ class _LoginState extends State<Login> {
                           Visibility(
                             visible: _cadastroUsuario,
                               child: ClipOval(
-                                child: Image.asset(
-                                    "images/perfil.png",
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.cover
-                                ),
+                                child: _arquivoImagemSelecionado != null
+                                    ? Image.memory(
+                                        _arquivoImagemSelecionado!,
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover
+                                    )
+                                    : Image.asset(
+                                          "images/perfil.png",
+                                          width: 120,
+                                          height: 120,
+                                          fit: BoxFit.cover
+                                      ),
                               ),
                           ),
 
@@ -126,7 +177,7 @@ class _LoginState extends State<Login> {
                           Visibility(
                             visible: _cadastroUsuario,
                               child: OutlinedButton(
-                                  onPressed: (){},
+                                  onPressed: _selecionarImagem,
                                   child: Text("Selecionar foto")
                               ),
                           ),
