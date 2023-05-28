@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:watsappweb/models/usuario.dart';
 import 'package:watsappweb/utils/paleta_cores.dart';
 
 class Login extends StatefulWidget {
@@ -22,6 +24,7 @@ class _LoginState extends State<Login> {
   bool _cadastroUsuario = false;
   FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseStorage _storage = FirebaseStorage.instance;
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Uint8List? _arquivoImagemSelecionado;
 
   _selecionarImagem() async {
@@ -38,16 +41,28 @@ class _LoginState extends State<Login> {
 
   }
 
-  _uploadImagem(String idUsuario){
+  _uploadImagem(Usuario usuario){
 
     Uint8List? arquivoSelecionado = _arquivoImagemSelecionado;
     if(arquivoSelecionado != null){
-      Reference imagemPerfilRef = _storage.ref("imagens/perfil/$idUsuario.jpg");
+      Reference imagemPerfilRef = _storage.ref("imagens/perfil/${usuario.idUsuario}.jpg");
       UploadTask uploadTask = imagemPerfilRef.putData(arquivoSelecionado);
 
       uploadTask.whenComplete(() async{
-        String linkImagem = await uploadTask.snapshot.ref.getDownloadURL();
-        print("Link da imagem: $linkImagem");
+        String urlImagem = await uploadTask.snapshot.ref.getDownloadURL();
+        usuario.urlImagem = urlImagem;
+
+        //Salvando dados no Firebase
+        final usuariosRef = _firestore.collection("usuarios");
+        usuariosRef.doc(usuario.idUsuario)
+        .set(usuario.toMap())
+        .then((value){
+
+          //Tela Pincipal
+          Navigator.pushReplacementNamed(context, "/home");
+
+        });
+
       });
 
     }
@@ -78,7 +93,14 @@ class _LoginState extends State<Login> {
                 // => Upload da Imagem
                 String? idUsuario = auth.user?.uid;
                 if(idUsuario != null){
-                  _uploadImagem(idUsuario);
+
+                  Usuario usuario = Usuario(
+                      idUsuario,
+                      nome,
+                      email
+                  );
+
+                  _uploadImagem(usuario);
                 }
               });
 
@@ -98,8 +120,8 @@ class _LoginState extends State<Login> {
               password: senha
           ).then((auth){
 
-            String? email = auth.user?.email;
-            print("Usuário cadastrado: $email");
+            //Tela Pincipal
+            Navigator.pushReplacementNamed(context, "/home");
 
           });
         }
