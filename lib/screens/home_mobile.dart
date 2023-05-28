@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:watsappweb/components/lista_contatos.dart';
 import 'package:watsappweb/utils/paleta_cores.dart';
 
 class HomeMobile extends StatefulWidget {
@@ -30,7 +31,7 @@ class _HomeMobileState extends State<HomeMobile> {
               IconButton(
                   onPressed: () async{
                     await _auth.signOut();
-                    Navigator.pushReplacementNamed(context, "/home");
+                    Navigator.pushReplacementNamed(context, "/login");
                   },
                   icon: Icon(Icons.logout)
               )
@@ -52,7 +53,10 @@ class _HomeMobileState extends State<HomeMobile> {
             child: TabBarView(
               children: [
                 Center(child: Text("Conversas"),),
-                Center(child: Text("Contatos"),),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: ListaContatos(),
+                )
               ],
             ),
           ),

@@ -40,6 +40,7 @@ dependencies:
   cloud_firestore:
   firebase_storage:
   file_picker: ^3.0.4
+  cached_network_image: ^3.1.0
 
 dev_dependencies:
   flutter_test:

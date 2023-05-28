@@ -82,5 +82,14 @@
   const app = initializeApp(firebaseConfig);
 </script>
 
+<script type="text/javascript">
+  let usehtml = true;
+  if(usehtml){
+    window.flutterWebRenderer = "html";
+  }else{
+    window.flutterWebRenderer = "canvaskit";
+  }
+</script>
+
 </body>
 </html>
