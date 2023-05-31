@@ -94,7 +94,13 @@ class _ListaContatosState extends State<ListaContatos> {
 
                         Usuario usuario = listaUsuarios[indice];
                         return ListTile(
-                          onTap: (){},
+                          onTap: (){
+                            Navigator.pushNamed(
+                              context,
+                              "/mensagens",
+                              arguments: usuario
+                            );
+                          },
                           leading: CircleAvatar(
                             radius: 25,
                             backgroundColor: Colors.grey,

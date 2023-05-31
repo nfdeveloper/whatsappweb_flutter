@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:watsappweb/models/usuario.dart';
 import 'package:watsappweb/screens/home.dart';
 import 'package:watsappweb/screens/login.dart';
+import 'package:watsappweb/screens/mensagens.dart';
 
 class Routes{
-
   static Route<dynamic> gerarRota(RouteSettings settings){
-
     final args = settings.arguments;
 
     switch( settings.name ){
@@ -20,6 +20,10 @@ class Routes{
       case "/home":
         return MaterialPageRoute(
             builder: (_) => Home()
+        );
+      case "/mensagens":
+        return MaterialPageRoute(
+            builder: (_) => Mensagens(args as Usuario)
         );
     }
 
@@ -36,5 +40,4 @@ class Routes{
       );
     });
   }
-
 }
